@@ -1,8 +1,11 @@
 import csv
 from datetime import datetime, timezone, timedelta
 
-# ルートディレクトリのposts.csvを読み込む
-with open("posts.csv", newline="", encoding="utf-8") as csvfile:
+input_file = "data/posts_latest.csv"
+output_file = "data/posts_filtered_1st.csv"
+
+# posts_latest.csvを読み込む
+with open(input_file, newline="", encoding="utf-8") as csvfile:
     reader = csv.reader(csvfile)
     rows = list(reader)
 
@@ -28,6 +31,6 @@ with open("posts.csv", newline="", encoding="utf-8") as csvfile:
     rows = filtered_rows
 
 # フィルタ後のデータをposts_filtered.csvに書き込む
-with open("posts_filtered.csv", "w", newline="", encoding="utf-8") as csvfile:
+with open(output_file, "w", newline="", encoding="utf-8") as csvfile:
     writer = csv.writer(csvfile)
     writer.writerows(rows)
