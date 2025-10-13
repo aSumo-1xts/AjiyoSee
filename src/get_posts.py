@@ -21,15 +21,11 @@ response = requests.get(URL, headers=HEADERS).json()
 print(json.dumps(response, indent=2, ensure_ascii=False))
 
 # "data" が存在する場合のみCSV化
-
 if "data" in response:
-    with open("tweets.csv", "w", newline="", encoding="utf-8") as csvfile:
-        if response["data"]:
-            writer = csv.DictWriter(csvfile, fieldnames=response["data"][0].keys())
-            writer.writeheader()
-            writer.writerows(response["data"])
-        else:
-            csvfile.write("")  # 空データの場合は空ファイル
-    print("tweets.csv を出力しました。")
+    with open("posts.csv", "w", newline="", encoding="utf-8") as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=response["data"][0].keys())
+        writer.writeheader()
+        writer.writerows(response["data"])
+    print("posts.csvを更新しました。")
 else:
-    print("ツイートが見つからないか、エラーが発生しました。")
+    print("ポストが見つからないか、エラーが発生しました。")
