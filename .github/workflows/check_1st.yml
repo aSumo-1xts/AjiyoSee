@@ -41,9 +41,9 @@ jobs:
         id: read_result
         run: echo "result=$(cat result.txt)" >> $GITHUB_OUTPUT
 
-      # READMEを更新
-      - name: Update README
-        id: update_readme
+      # Pagesを更新
+      - name: Update Pages
+        id: update_pages
         run: |
           RESULT=${{ steps.read_result.outputs.result }}
           if [ "$RESULT" = "0" ]; then
@@ -56,7 +56,7 @@ jobs:
             STATUS="❓ UNKNOWN"
           fi
 
-          sed -z -i "s|<!--RESULT_START-->.*<!--RESULT_END-->|<!--RESULT_START-->$STATUS<!--RESULT_END-->|" README.md
+          sed -z -i "s|<!--RESULT_START-->.*<!--RESULT_END-->|<!--RESULT_START-->$STATUS<!--RESULT_END-->|" docs/index.md
 
           # STATUSを出力として保存（次のステップで使えるように）
           echo "status=$STATUS" >> $GITHUB_OUTPUT
@@ -66,5 +66,5 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add -A
-          git commit -m "auto: あじよしは現在 ${{ steps.update_readme.outputs.status }}" || echo "No changes"
+          git commit -m "auto: あじよしは現在 ${{ steps.update_pages.outputs.status }}" || echo "No changes"
           git push origin gh-actions

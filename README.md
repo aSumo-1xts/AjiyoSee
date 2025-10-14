@@ -1,7 +1,5 @@
 # AjiyoSee
 
-あじよしは現在 <!--RESULT_START-->❓ UNKNOWN<!--RESULT_END-->
-
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 [![X-API](https://img.shields.io/badge/X_API-%23000000.svg?logo=X&logoColor=white)](https://developer.x.com/ja/docs/x-api)
 [![ESP](https://img.shields.io/badge/ESP8266-E7352C?logo=Espressif&logoColor=white)](https://www.espressif.com/ja-jp)
