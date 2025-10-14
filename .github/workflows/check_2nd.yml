@@ -22,10 +22,10 @@ jobs:
           fetch-depth: 0
 
       # result.txtをアーティファクトとして一時保存
-      - name: Save result
+      - name: Save result (initial)
         uses: actions/upload-artifact@v4
         with:
-          name: result
+          name: result-initial
           path: data/result.txt
 
       # ここでmainブランチをチェックアウト
@@ -36,10 +36,10 @@ jobs:
           fetch-depth: 0
 
       # 保存した result.txt を復元
-      - name: Restore result
+      - name: Restore result (initial)
         uses: actions/download-artifact@v4
         with:
-          name: result
+          name: result-initial
           path: data
       
       # result.txtを読み込む
@@ -77,10 +77,10 @@ jobs:
 
       # result.txtをアーティファクトとして一時保存
       # 上2つの処理をスキップした場合は無駄になるが、まあ良いでしょう
-      - name: Save result
+      - name: Save result (final)
         uses: actions/upload-artifact@v4
         with:
-          name: result
+          name: result-final
           path: data/result.txt
 
       # ここでgh-actionsブランチをチェックアウト
@@ -91,10 +91,10 @@ jobs:
           fetch-depth: 0
 
       # 保存したresult.txtを復元
-      - name: Restore result
+      - name: Restore result (final)
         uses: actions/download-artifact@v4
         with:
-          name: result
+          name: result-final
           path: data
 
       # Pagesを更新
