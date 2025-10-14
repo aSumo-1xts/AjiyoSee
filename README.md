@@ -1,12 +1,15 @@
 # AjiyoSee
 
-![Python](https://img.shields.io/badge/python_|_3.14-3670A0?logo=python&logoColor=ffdd54)
-![C++](https://img.shields.io/badge/c++-%2300599C?logo=c%2B%2B&logoColor=white)
-![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)
-![Arduino](https://img.shields.io/badge/Arduino-00979D?logo=Arduino&logoColor=white)
-![License: MIT](https://img.shields.io/badge/License-MIT-green)
+[![Check OPEN/CLOSE](https://github.com/aSumo-1xts/AjiyoSee/actions/workflows/check_1st.yml/badge.svg?branch=gh-actions)](https://github.com/aSumo-1xts/AjiyoSee/actions/workflows/check_1st.yml)
+[![Check SOLD OUT](https://github.com/aSumo-1xts/AjiyoSee/actions/workflows/check_2nd.yml/badge.svg?branch=gh-actions)](https://github.com/aSumo-1xts/AjiyoSee/actions/workflows/check_2nd.yml)
+[![pages-build-deployment](https://github.com/aSumo-1xts/AjiyoSee/actions/workflows/pages/pages-build-deployment/badge.svg?branch=gh-actions)](https://github.com/aSumo-1xts/AjiyoSee/actions/workflows/pages/pages-build-deployment)
 
-つくば市の飲食店「あじよし」の営業状況をざっくりリアルタイムで可視化する非公認プロジェクト。
+[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
+[![X-API](https://img.shields.io/badge/X_API-%23000000.svg?logo=X&logoColor=white)](https://developer.x.com/ja/docs/x-api)
+[![ESP](https://img.shields.io/badge/ESP8266-E7352C?logo=Espressif&logoColor=white)](https://www.espressif.com/ja-jp)
+[![MIT](https://img.shields.io/badge/License-MIT-green)](./LICENSE)
+
+つくば市の飲食店『あじよし』の営業状況をざっくりリアルタイムで可視化する非公認プロジェクト。
 
 必要に応じて`CONTRIBUTING.md`も参照してください。
 
@@ -21,4 +24,4 @@ X APIを叩いてツイートを取得し、営業時間を判別するPythonス
 
 ## dir: `src`
 
-マイコンがGitHub Actionsによって更新された`data/result.txt`を読み取り、LEDやLCDに反映するためのファームウェア。
+マイコンからGitHub Actionsによって更新された`data/result.txt`を読み取り、LEDやLCDに反映するためのファームウェア。

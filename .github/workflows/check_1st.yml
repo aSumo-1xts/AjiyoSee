@@ -1,0 +1,108 @@
+name: Check OPEN/CLOSE
+
+on:
+  schedule:
+    - cron: '0 8 * * *' # 17:00 JST → 8:00 UTC
+  workflow_dispatch:
+
+jobs:
+  check-open-close:
+    runs-on: ubuntu-latest
+
+    steps:
+      # この時点ではmainブランチがチェックアウトされている
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 土日なら下2つの処理をスキップ
+      - name: Skip if weekend
+        id: skip_if_weekend
+        run: |
+          day=$(date +%u)
+          if [ "$day" -ge 6 ]; then
+            FLAG_SKIP=true
+            echo "Skipping."
+            echo "flag_skip=$FLAG_SKIP" >> $GITHUB_OUTPUT
+          fi
+
+      # Pythonのセットアップ
+      - name: Install dependencies
+        if: steps.skip_if_weekend.outputs.flag_skip != 'true'
+        run: |
+          pip install requests python-dotenv
+
+      # Pythonスクリプトの実行
+      - name: Run Python script
+        env:
+          BEARER_TOKEN: ${{ secrets.BEARER_TOKEN }}
+        if: steps.skip_if_weekend.outputs.flag_skip != 'true'
+        run: |
+          python3 script/get_posts.py
+          python3 script/filter_posts.py -1
+          python3 script/check_openclose.py
+
+      # 結果を読み込む
+      - name: Read result file
+        id: read_result
+        run: |
+          echo "result=$(cat data/result.txt)" >> $GITHUB_OUTPUT
+
+      # 結果をアーティファクトとして一時保存
+      - name: Save result
+        uses: actions/upload-artifact@v4
+        with:
+          name: result
+          path: data/result.txt
+
+      # ここでgh-actionsブランチをチェックアウト
+      - name: Checkout gh-actions branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-actions
+          fetch-depth: 0
+
+      # 保存した result.txt を復元
+      - name: Restore result
+        uses: actions/download-artifact@v4
+        with:
+          name: result
+          path: data
+
+      # Pagesを更新
+      - name: Update Pages
+        id: update_pages
+        run: |
+
+          # 営業状況
+          RESULT=$(cat data/result.txt)
+          if [ "$RESULT" = "0" ]; then
+            STATUS="❌ CLOSE"
+          elif [ "$RESULT" = "1" ]; then
+            STATUS="⭕ OPEN"
+          elif [ "$RESULT" = "2" ]; then
+            STATUS="❗ SOLD OUT"
+          else
+            STATUS="❓ UNKNOWN"
+          fi
+
+          # 更新日時（JST）
+          DATE=$(TZ='Asia/Tokyo' date '+%Y-%m-%d %H:%M (%Z)')
+
+          # 営業状況の書き換え
+          sed -z -i "s|<!--RESULT_START-->.*<!--RESULT_END-->|<!--RESULT_START-->$STATUS<!--RESULT_END-->|" docs/index.md
+
+          # 更新日時の書き換え
+          sed -z -i "s|<!--DATE_START-->.*<!--DATE_END-->|<!--DATE_START-->$DATE<!--DATE_END-->|" docs/index.md
+
+          # STATUSを出力として保存
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+          echo "date=$DATE" >> $GITHUB_OUTPUT
+
+      # 変更をコミットしてプッシュ
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add -A
+          git commit -m "auto: あじよしは現在 ${{ steps.update_pages.outputs.status }}" || echo "No changes"
+          git push origin gh-actions
