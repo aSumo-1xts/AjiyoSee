@@ -45,6 +45,8 @@ jobs:
       - name: Update Pages
         id: update_pages
         run: |
+
+          # 営業状況
           RESULT=${{ steps.read_result.outputs.result }}
           if [ "$RESULT" = "0" ]; then
             STATUS="❌ CLOSE"
@@ -56,10 +58,18 @@ jobs:
             STATUS="❓ UNKNOWN"
           fi
 
+          # 更新日時（JST）
+          DATE=$(TZ='Asia/Tokyo' date '+%Y-%m-%d %H:%M JST')
+
+          # 営業状況の書き換え
           sed -z -i "s|<!--RESULT_START-->.*<!--RESULT_END-->|<!--RESULT_START-->$STATUS<!--RESULT_END-->|" docs/index.md
+
+          # 更新日時の書き換え
+          sed -z -i "s|<!--DATE_START-->.*<!--DATE_END-->|<!--DATE_START-->$DATE<!--DATE_END-->|" docs/index.md
 
           # STATUSを出力として保存（次のステップで使えるように）
           echo "status=$STATUS" >> $GITHUB_OUTPUT
+          echo "date=$DATE" >> $GITHUB_OUTPUT
 
       - name: Commit and push changes
         run: |
