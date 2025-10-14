@@ -1,10 +1,8 @@
 # AjiyoSee
 
-![Python](https://img.shields.io/badge/python_|_3.14-3670A0?logo=python&logoColor=ffdd54)
-![C++](https://img.shields.io/badge/c++-%2300599C?logo=c%2B%2B&logoColor=white)
-![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)
-![Arduino](https://img.shields.io/badge/Arduino-00979D?logo=Arduino&logoColor=white)
-![License: MIT](https://img.shields.io/badge/License-MIT-green)
+[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
+[![ESP](https://img.shields.io/badge/ESP-E7352C?logo=Espressif&logoColor=white)](https://www.espressif.com/ja-jp)
+[![MIT](https://img.shields.io/badge/License-MIT-green)](./LICENSE)
 
 つくば市の飲食店「あじよし」の営業状況をざっくりリアルタイムで可視化する非公認プロジェクト。
 
