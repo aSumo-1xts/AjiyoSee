@@ -2,6 +2,7 @@
 
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 [![ESP](https://img.shields.io/badge/ESP-E7352C?logo=Espressif&logoColor=white)](https://www.espressif.com/ja-jp)
+[![X-API](https://img.shields.io/badge/API-%23000000.svg?logo=X&logoColor=white)](https://developer.x.com/ja/docs/x-api)
 [![MIT](https://img.shields.io/badge/License-MIT-green)](./LICENSE)
 
 つくば市の飲食店「あじよし」の営業状況をざっくりリアルタイムで可視化する非公認プロジェクト。
