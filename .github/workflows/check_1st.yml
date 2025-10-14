@@ -21,6 +21,10 @@ jobs:
             exit 0
           fi
 
+      - name: Install dependencies
+        run: |
+          pip install requests python-dotenv pandas
+
       - name: Run Python script
         env:
           BEARER_TOKEN: ${{ secrets.BEARER_TOKEN }}
