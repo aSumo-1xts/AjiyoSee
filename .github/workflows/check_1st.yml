@@ -1,0 +1,40 @@
+name: Check OPEN/CLOSE
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # 09:00 JST → 0:00 UTC
+  workflow_dispatch:
+
+jobs:
+  check-open-close:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Skip if weekend
+        run: |
+          day=$(date +%u)
+          if [ "$day" -ge 6 ]; then
+            echo "It's weekend. Skipping."
+            exit 0
+          fi
+
+      - name: Run Python script
+        env:
+          BEARER_TOKEN: ${{ secrets.BEARER_TOKEN }}
+        run: |
+          python3 script/get_posts.py
+          python3 script/filter_posts.py -1
+          python3 script/check_openclose.py
+
+      - name: Commit result.txt if changed
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add data/result.txt || true
+          git diff --quiet && echo "No changes to commit" || git commit -m "auto: result.txtを更新"
+          git fetch origin
+          git switch -C auto-update
+          git push origin auto-update
