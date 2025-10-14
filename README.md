@@ -1,11 +1,11 @@
 # AjiyoSee
 
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
-[![ESP](https://img.shields.io/badge/ESP-E7352C?logo=Espressif&logoColor=white)](https://www.espressif.com/ja-jp)
-[![X-API](https://img.shields.io/badge/API-%23000000.svg?logo=X&logoColor=white)](https://developer.x.com/ja/docs/x-api)
+[![X-API](https://img.shields.io/badge/X_API-%23000000.svg?logo=X&logoColor=white)](https://developer.x.com/ja/docs/x-api)
+[![ESP](https://img.shields.io/badge/ESP8266-E7352C?logo=Espressif&logoColor=white)](https://www.espressif.com/ja-jp)
 [![MIT](https://img.shields.io/badge/License-MIT-green)](./LICENSE)
 
-つくば市の飲食店「あじよし」の営業状況をざっくりリアルタイムで可視化する非公認プロジェクト。
+つくば市の飲食店『あじよし』の営業状況をざっくりリアルタイムで可視化する非公認プロジェクト。
 
 必要に応じて`CONTRIBUTING.md`も参照してください。
 
