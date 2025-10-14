@@ -13,16 +13,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+    # 結果を読み込む
+      - name: Read result file
+        id: read_result_1st
+        run: echo "result=$(cat data/result.txt)" >> $GITHUB_OUTPUT
+
       # 土日またはお休みなら下2つの処理をスキップ
       - name: Skip if weekend
         id: skip_if_weekend
         run: |
           day=$(date +%u)
-          if [ "$day" -ge 6 ]; then
+          FLAG_SKIP=false
+          if [ "$day" -ge 6 ] || [ "${{ steps.read_result_1st.outputs.result }}" = "0" ]; then
             FLAG_SKIP=true
             echo "Skipping."
-            echo "flag_skip=$FLAG_SKIP" >> $GITHUB_OUTPUT
           fi
+          echo "flag_skip=$FLAG_SKIP" >> $GITHUB_OUTPUT
 
       # Pythonのセットアップ
       - name: Install dependencies
