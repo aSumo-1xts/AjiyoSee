@@ -1,3 +1,9 @@
+"""
+get_posts.py
+
+X APIを叩いておばちゃんの直近10件の投稿を取得し、posts_latest.csvに上書きする。
+"""
+
 import os
 import csv
 import json
@@ -16,10 +22,10 @@ URL = (
     f"?query={SEARCH_KEYWORD}&tweet.fields=author_id,created_at&max_results={MAX_RESULTS}"
 )
 load_dotenv()
-token = os.getenv("BEARER_TOKEN")
+token = os.getenv("BEARER_TOKEN")  # .envファイルにBEARER_TOKEN="xxx"と書いておく
 HEADERS = {"Authorization": f"Bearer {token}"}
 
-# APIを叩いてJSONを取得、表示
+# APIを叩いてJSON形式で取得、表示
 response = requests.get(URL, headers=HEADERS).json()
 print(json.dumps(response, indent=2, ensure_ascii=False))
 
@@ -29,6 +35,6 @@ if "data" in response:
         writer = csv.DictWriter(csvfile, fieldnames=response["data"][0].keys())
         writer.writeheader()
         writer.writerows(response["data"])
-    print(f"{output_file} を更新しました。")
+    print(f"{output_file}を更新しました。")
 else:
     print("ポストが見つからないか、エラーが発生しました。")
