@@ -2,7 +2,7 @@ name: Check SOLD OUT
 
 on:
   schedule:
-    - cron: '0 0 * * *' # 09:00 JST → 0:00 UTC
+    - cron: '30 11 * * *' # 20:30 JST → 11:30 UTC
   workflow_dispatch:
 
 jobs:

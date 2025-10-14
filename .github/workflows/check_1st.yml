@@ -2,7 +2,7 @@ name: Check OPEN/CLOSE
 
 on:
   schedule:
-    - cron: '0 0 * * *' # 09:00 JST → 0:00 UTC
+    - cron: '0 8 * * *' # 17:00 JST → 8:00 UTC
   workflow_dispatch:
 
 jobs:

@@ -20,4 +20,4 @@ X APIを叩いてツイートを取得し、営業時間を判別するPythonス
 
 ## dir: `src`
 
-マイコンがGitHub Actionsによって更新された`data/result.txt`を読み取り、LEDやLCDに反映するためのファームウェア。
+マイコンからGitHub Actionsによって更新された`data/result.txt`を読み取り、LEDやLCDに反映するためのファームウェア。
