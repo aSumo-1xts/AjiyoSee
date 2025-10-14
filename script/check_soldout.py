@@ -27,14 +27,20 @@ with (
     if rows_1st[1][1] == rows_2nd[1][1]:
         result = 1
     else:
+        # ヘッダーから"id"列のインデックスを取得
+        id_idx_1st = rows_1st[0].index("id")
+        id_idx_2nd = rows_2nd[0].index("id")
+        # ヘッダーから"text"列のインデックスを取得
+        text_idx_2nd = rows_2nd[0].index("text")
+
         # idの列を比較して、2回目にしか無い行のindexを取得
         diff_indices = [
             idx
             for idx, row in enumerate(rows_2nd[1:], start=1)
-            if row[1] not in [r[1] for r in rows_1st[1:]]
+            if row[id_idx_2nd] not in [r[id_idx_1st] for r in rows_1st[1:]]
         ]
         # その行のtext列を調べて、「完売」が含まれていれば売り切れと判定
-        if any("完売" in rows_2nd[idx][3] for idx in diff_indices):
+        if any("完売" in rows_2nd[idx][text_idx_2nd] for idx in diff_indices):
             result = 2
 
 if result == 2:

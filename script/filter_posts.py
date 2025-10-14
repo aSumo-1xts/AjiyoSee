@@ -9,7 +9,6 @@ import sys
 import csv
 from datetime import datetime, timezone, timedelta
 
-n = 12  # 過去n時間以内の投稿だけを抽出
 input_file = "data/posts_latest.csv"
 
 # コマンドライン引数でリクエストが1回目か2回目かを指定
@@ -33,12 +32,18 @@ with open(input_file, newline="", encoding="utf-8") as csvfile:
     header, *data_rows = rows
     filtered_rows = [header]  # まっさらな出力結果にヘッダーを追加しておく
 
-    # row[0]: author_id, row[1]: id, row[2]: created_at, row[3]: text, ...
+    # "created_at"列のインデックスを取得
+    try:
+        created_at_idx = header.index("created_at")
+    except ValueError:
+        print('Error: "created_at"列が見つかりません。')
+        sys.exit(1)
+
     for row in data_rows:
-        # X APIの時刻表示をdatetimeに変換
-        posts_utc = datetime.strptime(row[2], "%Y-%m-%dT%H:%M:%S.%fZ").replace(
-            tzinfo=timezone.utc
-        )  # X APIの時刻はUTC
+        # "created_at"列の値をdatetimeに変換
+        posts_utc = datetime.strptime(
+            row[created_at_idx], "%Y-%m-%dT%H:%M:%S.%fZ"
+        ).replace(tzinfo=timezone.utc)  # X APIの時刻はUTC
         posts_jst = posts_utc.astimezone(timezone(timedelta(hours=9)))  # JSTに変換
 
         # 投稿がJSTで今日のものであれば抽出
