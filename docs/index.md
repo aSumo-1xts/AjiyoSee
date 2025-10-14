@@ -2,7 +2,7 @@
 
 <!--DATE_START-->N/A<!--DATE_END--> 現在
 
-あじよしは <!--RESULT_START-->❓ UNKNOWN<!--RESULT_END-->
+**あじよしは <!--RESULT_START-->❓ UNKNOWN<!--RESULT_END-->**
 
 ## 本ページの運用
 
@@ -12,11 +12,9 @@
 - CLOSE
 - SOLD OUT
 - UNKNOWN
-  
-なお、上記のスキャン時刻から本ページに反映されるまでには数分を要すると思われます。
 
 ## Note
 
 本ページは試験運用中です。
 
-正確な情報は[あじよし公式X](https://x.com/ajiyoshiver2)よりご確認ください。
+正確な営業状況は[あじよし公式X](https://x.com/ajiyoshiver2)よりご確認ください。
