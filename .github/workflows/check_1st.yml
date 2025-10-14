@@ -13,6 +13,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 土日ならスキップ
       - name: Skip if weekend
         run: |
           day=$(date +%u)
@@ -21,10 +22,12 @@ jobs:
             exit 0
           fi
 
+      # Pythonのセットアップ
       - name: Install dependencies
         run: |
           pip install requests python-dotenv pandas
 
+      # Pythonスクリプトの実行
       - name: Run Python script
         env:
           BEARER_TOKEN: ${{ secrets.BEARER_TOKEN }}
@@ -33,10 +36,35 @@ jobs:
           python3 script/filter_posts.py -1
           python3 script/check_openclose.py
 
+      # 結果を読み込む
+      - name: Read result file
+        id: read_result
+        run: echo "result=$(cat result.txt)" >> $GITHUB_OUTPUT
+
+      # READMEを更新
+      - name: Update README
+        id: update_readme
+        run: |
+          RESULT=${{ steps.read_result.outputs.result }}
+          if [ "$RESULT" = "0" ]; then
+            STATUS="❌ CLOSE"
+          elif [ "$RESULT" = "1" ]; then
+            STATUS="✔ OPEN"
+          elif [ "$RESULT" = "2" ]; then
+            STATUS="❗ SOLD OUT"
+          else
+            STATUS="❓ UNKNOWN"
+          fi
+
+          sed -z -i "s|<!--RESULT_START-->.*<!--RESULT_END-->|<!--RESULT_START-->$STATUS<!--RESULT_END-->|" README.md
+
+          # STATUSを出力として保存（次のステップで使えるように）
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+
       - name: Commit and push changes
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add -A
-          git commit -m "auto: 各種dataファイルを更新" || echo "No changes to commit"
+          git commit -m "auto: あじよしは現在 ${{ steps.update_readme.outputs.status }}" || echo "No changes"
           git push origin gh-actions
