@@ -16,8 +16,17 @@ with open(input_file, encoding="utf-8") as f:
     reader = list(csv.reader(f))
     if len(reader) > 1:  # そもそも投稿が無ければお休みと判定
         data_rows = reader[1:]  # ヘッダーをスキップ
-        for row in reversed(data_rows):  # 時系列に沿って降順に走査
-            text = row[3]
+
+        # "text"列のインデックスを取得
+        header = reader[0]
+        try:
+            text_idx = header.index("text")
+        except ValueError:
+            raise Exception('"text"列が見つかりません')
+
+        # 時系列に沿って降順に走査
+        for row in reversed(data_rows):
+            text = row[text_idx]
             if "メニュー" in text:
                 result = 1
             elif "お休み" in text:
