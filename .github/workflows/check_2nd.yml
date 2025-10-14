@@ -10,10 +10,39 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # この時点ではmainブランチがチェックアウトされている
       - name: Checkout repository
         uses: actions/checkout@v4
 
-    # 結果を読み込む
+      # いきなりgh-actionsブランチをチェックアウト
+      - name: Checkout gh-actions branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-actions
+          fetch-depth: 0
+
+      # result.txtをアーティファクトとして一時保存
+      - name: Save result
+        uses: actions/upload-artifact@v4
+        with:
+          name: result
+          path: data/result.txt
+
+      # ここでmainブランチをチェックアウト
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      # 保存した result.txt を復元
+      - name: Restore result
+        uses: actions/download-artifact@v4
+        with:
+          name: result
+          path: data
+      
+      # result.txtを読み込む
       - name: Read result file
         id: read_result_1st
         run: echo "result=$(cat data/result.txt)" >> $GITHUB_OUTPUT
@@ -46,19 +75,35 @@ jobs:
           python3 script/filter_posts.py -2
           python3 script/check_openclose.py
 
-      # 結果を読み込む
-      # 上2つの処理をスキップした場合は無駄ですが、まあ良いでしょう
-      - name: Read result file
-        id: read_result
-        run: echo "result=$(cat data/result.txt)" >> $GITHUB_OUTPUT
+      # result.txtをアーティファクトとして一時保存
+      # 上2つの処理をスキップした場合は無駄になるが、まあ良いでしょう
+      - name: Save result
+        uses: actions/upload-artifact@v4
+        with:
+          name: result
+          path: data/result.txt
+
+      # ここでgh-actionsブランチをチェックアウト
+      - name: Checkout gh-actions branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-actions
+          fetch-depth: 0
+
+      # 保存したresult.txtを復元
+      - name: Restore result
+        uses: actions/download-artifact@v4
+        with:
+          name: result
+          path: data
 
       # Pagesを更新
       - name: Update Pages
         id: update_pages
         run: |
 
-          # 営業状況
-          RESULT=${{ steps.read_result.outputs.result }}
+          # result.txtの内容を読み込んで判定
+          RESULT=$(cat data/result.txt)
           if [ "$RESULT" = "0" ]; then
             STATUS="❌ CLOSE"
           elif [ "$RESULT" = "1" ]; then
@@ -70,7 +115,7 @@ jobs:
           fi
 
           # 更新日時（JST）
-          DATE=$(TZ='Asia/Tokyo' date '+%Y-%m-%d %H:%M JST')
+          DATE=$(TZ='Asia/Tokyo' date '+%Y-%m-%d %H:%M (%Z)')
 
           # 営業状況の書き換え
           sed -z -i "s|<!--RESULT_START-->.*<!--RESULT_END-->|<!--RESULT_START-->$STATUS<!--RESULT_END-->|" docs/index.md
@@ -78,15 +123,13 @@ jobs:
           # 更新日時の書き換え
           sed -z -i "s|<!--DATE_START-->.*<!--DATE_END-->|<!--DATE_START-->$DATE<!--DATE_END-->|" docs/index.md
 
-          # STATUSを出力として保存（次のステップで使えるように）
+          # STATUSを出力として保存
           echo "status=$STATUS" >> $GITHUB_OUTPUT
           echo "date=$DATE" >> $GITHUB_OUTPUT
 
+      # 変更をコミットしてプッシュ
       - name: Commit and push changes
         run: |
-          git fetch
-          git checkout gh-actions
-          git pull origin gh-actions
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add -A

@@ -41,7 +41,7 @@ jobs:
           python3 script/filter_posts.py -1
           python3 script/check_openclose.py
 
-      # 結果をアーティファクトとして一時保存
+      # result.txtをアーティファクトとして一時保存
       - name: Save result
         uses: actions/upload-artifact@v4
         with:
@@ -55,7 +55,7 @@ jobs:
           ref: gh-actions
           fetch-depth: 0
 
-      # 保存した result.txt を復元
+      # 保存したresult.txtを復元
       - name: Restore result
         uses: actions/download-artifact@v4
         with:
