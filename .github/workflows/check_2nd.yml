@@ -1,4 +1,4 @@
-name: Check OPEN/CLOSE
+name: Check SOLD OUT
 
 on:
   schedule:
@@ -6,14 +6,14 @@ on:
   workflow_dispatch:
 
 jobs:
-  check-open-close:
+  check-soldout:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 土日なら下2つの処理をスキップ
+      # 土日またはお休みなら下2つの処理をスキップ
       - name: Skip if weekend
         id: skip_if_weekend
         run: |
@@ -37,7 +37,7 @@ jobs:
         if: steps.skip_if_weekend.outputs.flag_skip != 'true'
         run: |
           python3 script/get_posts.py
-          python3 script/filter_posts.py -1
+          python3 script/filter_posts.py -2
           python3 script/check_openclose.py
 
       # 結果を読み込む
@@ -78,7 +78,7 @@ jobs:
       - name: Commit and push changes
         run: |
           git fetch
-          git checkout gh-actions
+          git checkout -b gh-actions
           git pull origin gh-actions
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
