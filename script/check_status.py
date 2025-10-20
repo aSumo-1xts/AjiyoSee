@@ -19,6 +19,7 @@ def main():
             reader = list(csv.reader(f))
             if len(reader) <= 1:
                 print("[INFO] 投稿がありません。")
+                result = 0 # 投稿がなければお休みとみなす
             else:
                 header = reader[0]
                 text_idx = header.index("text")
