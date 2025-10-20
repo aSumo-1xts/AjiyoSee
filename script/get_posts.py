@@ -10,7 +10,7 @@ import json
 from dotenv import load_dotenv
 import requests
 
-output_file = "data/posts_latest.csv"
+output_file = "posts_latest.csv"
 
 # 自分で設定する項目
 SEARCH_KEYWORD = "from:ajiyoshiver2"

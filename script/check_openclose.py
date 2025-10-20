@@ -7,8 +7,8 @@ check_openclose.py
 
 import csv
 
-input_file = "data/posts_filtered_1st.csv"
-output_file = "data/result.txt"
+input_file = "posts_filtered_1st.csv"
+output_file = "result.txt"
 result = 0  # 0: CLOSE, 1: OPEN
 
 # posts_filtered_1st.csvを読み込む

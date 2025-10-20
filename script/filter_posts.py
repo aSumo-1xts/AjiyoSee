@@ -9,14 +9,14 @@ import sys
 import csv
 from datetime import datetime, timezone, timedelta
 
-input_file = "data/posts_latest.csv"
+input_file = "posts_latest.csv"
 
 # コマンドライン引数でリクエストが1回目か2回目かを指定
 try:
     if sys.argv[1] == "-1":
-        output_file = "data/posts_filtered_1st.csv"
+        output_file = "posts_filtered_1st.csv"
     elif sys.argv[1] == "-2":
-        output_file = "data/posts_filtered_2nd.csv"
+        output_file = "posts_filtered_2nd.csv"
 except IndexError:
     print("Error: コマンドライン引数で -1 か -2 を指定してください。")
     sys.exit(1)
