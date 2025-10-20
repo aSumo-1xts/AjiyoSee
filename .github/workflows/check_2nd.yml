@@ -17,17 +17,12 @@ jobs:
           ref: gh-actions
           fetch-depth: 0
 
-      # result.txt を一時ディレクトリにコピー（なければ "3" を作成）
+      # result.txt を一時ディレクトリにコピー
       - name: Backup result.txt
         run: |
           mkdir -p /tmp/ajiyo
-          if [ -f result.txt ]; then
-            cp result.txt /tmp/ajiyo/result.txt
-            echo "[INFO] Copied existing result.txt to /tmp/ajiyo"
-          else
-            echo "3" > /tmp/ajiyo/result.txt
-            echo "[INFO] Created default result.txt (3: X API ERROR)"
-          fi
+          cp result.txt /tmp/ajiyo/result.txt
+          echo "[INFO] Copied existing result.txt to /tmp/ajiyo"
 
       # main ブランチをチェックアウト
       - name: Checkout main branch
@@ -45,7 +40,7 @@ jobs:
         id: read_result_1st
         run: echo "result=$(cat result.txt)" >> $GITHUB_OUTPUT
 
-      # 土日 または CLOSE (0) / X API Error (3) の場合はスキップ
+      # 土日またはOPENでない場合にはスキップ
       - name: Check skip conditions
         id: skip
         run: |
@@ -53,7 +48,8 @@ jobs:
           FLAG_SKIP=false
           if [ "$day" -ge 6 ] || \
              [ "${{ steps.read_result_1st.outputs.result }}" = "0" ] || \
-             [ "${{ steps.read_result_1st.outputs.result }}" = "3" ]; then
+             [ "${{ steps.read_result_1st.outputs.result }}" = "3" ] || \
+             [ "${{ steps.read_result_1st.outputs.result }}" = "4" ] || \
             FLAG_SKIP=true
             echo "[INFO] Skipping workflow (weekend or closed)"
           fi
