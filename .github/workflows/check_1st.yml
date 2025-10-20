@@ -92,7 +92,7 @@ jobs:
             0) STATUS="❌ CLOSE" ;;
             1) STATUS="⭕ OPEN" ;;
             2) STATUS="🚫 SOLD OUT" ;;
-            3) STATUS="⚠️ UNKNOWN (X API ERROR)" ;;
+            3) STATUS="⚠️ UNKNOWN \[X API ERROR\]" ;;
             *) STATUS="❓ UNKNOWN" ;;
           esac
 
