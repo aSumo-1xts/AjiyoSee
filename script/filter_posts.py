@@ -1,57 +1,49 @@
 """
-filter_posts_1st.py
-
-get_posts.pyの実行結果をフィルタして、過去n時間以内の投稿だけを抽出する。
-具体的には、posts_latest.csvを読み込んでposts_filtered_1st.csvに上書きする。
+filter_posts.py
+今日の投稿のみを抽出。
 """
 
-import sys
 import csv
-from datetime import datetime, timezone, timedelta
+from common import utc_to_jst, today_jst
 
-input_file = "posts_latest.csv"
+INPUT_FILE = "posts_latest.csv"
 
-# コマンドライン引数でリクエストが1回目か2回目かを指定
-try:
-    if sys.argv[1] == "-1":
-        output_file = "posts_filtered_1st.csv"
-    elif sys.argv[1] == "-2":
-        output_file = "posts_filtered_2nd.csv"
-except IndexError:
-    print("Error: コマンドライン引数で -1 か -2 を指定してください。")
-    sys.exit(1)
 
-# 時刻の準備
-now_utc = datetime.now(timezone.utc)  # 現在の時刻（UTC）
-now_jst = now_utc.astimezone(timezone(timedelta(hours=9)))  # 現在の時刻（JST）
+def main():
+    output_file = "posts_filtered.csv"
 
-# posts_latest.csvを読み込む
-with open(input_file, newline="", encoding="utf-8") as csvfile:
-    reader = csv.reader(csvfile)
-    rows = list(reader)
-    header, *data_rows = rows
-    filtered_rows = [header]  # まっさらな出力結果にヘッダーを追加しておく
-
-    # "created_at"列のインデックスを取得
     try:
-        created_at_idx = header.index("created_at")
-    except ValueError:
-        print('Error: "created_at"列が見つかりません。')
-        sys.exit(1)
+        with open(INPUT_FILE, newline="", encoding="utf-8") as f:
+            reader = csv.reader(f)
+            rows = list(reader)
 
-    for row in data_rows:
-        # "created_at"列の値をdatetimeに変換
-        posts_utc = datetime.strptime(
-            row[created_at_idx], "%Y-%m-%dT%H:%M:%S.%fZ"
-        ).replace(tzinfo=timezone.utc)  # X APIの時刻はUTC
-        posts_jst = posts_utc.astimezone(timezone(timedelta(hours=9)))  # JSTに変換
+            if not rows:
+                print(f"[INFO] {INPUT_FILE} は空です。")
+                return
 
-        # 投稿がJSTで今日のものであれば抽出
-        if posts_jst.date() == now_jst.date():
-            filtered_rows.append(row)
+            header, *data_rows = rows
+            created_at_idx = header.index("created_at")
+            filtered = [header]
 
-    rows = filtered_rows
+            # 各行について、created_at を UTC->JST に変換して本日か確認
+            for row in data_rows:
+                try:
+                    # created_at の日時文字列を utc_to_jst() で変換し、日付部分を比較
+                    if utc_to_jst(row[created_at_idx]).date() == today_jst():
+                        filtered.append(row)
+                except Exception:
+                    # 日時パースやインデックスエラーなどが発生した行は無視
+                    continue
 
-with open(output_file, "w", newline="", encoding="utf-8") as csvfile:
-    writer = csv.writer(csvfile)
-    writer.writerows(rows)
+        # フィルタ済みデータを新しいCSVとして出力
+        with open(output_file, "w", newline="", encoding="utf-8") as f:
+            csv.writer(f).writerows(filtered)
+        print(f"[INFO] {output_file}を生成しました。")
+
+    except FileNotFoundError:
+        # 入力ファイルが存在しない場合のエラーメッセージ
+        print(f"[ERROR] {INPUT_FILE}が存在しません。")
+
+
+if __name__ == "__main__":
+    main()

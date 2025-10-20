@@ -2,7 +2,7 @@ name: Check OPEN/CLOSE
 
 on:
   schedule:
-    - cron: '45 7 * * *' # 16:45 JST → 7:45 UTC
+    - cron: "45 7 * * *" # JST 16:45
   workflow_dispatch:
 
 jobs:
@@ -10,89 +10,102 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # この時点ではmainブランチがチェックアウトされている
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      # 土日なら下2つの処理をスキップ
-      - name: Skip if weekend
-        id: skip_if_weekend
-        run: |
-          day=$(date +%u)
-          if [ "$day" -ge 6 ]; then
-            FLAG_SKIP=true
-            echo "Skipping."
-            echo "flag_skip=$FLAG_SKIP" >> $GITHUB_OUTPUT
-          fi
-
-      # Pythonのセットアップ
-      - name: Install dependencies
-        if: steps.skip_if_weekend.outputs.flag_skip != 'true'
-        run: |
-          pip install requests python-dotenv
-
-      # Pythonスクリプトの実行
-      - name: Run Python script
-        env:
-          BEARER_TOKEN: ${{ secrets.BEARER_TOKEN }}
-        if: steps.skip_if_weekend.outputs.flag_skip != 'true'
-        run: |
-          python3 script/get_posts.py
-          python3 script/filter_posts.py -1
-          python3 script/check_openclose.py
-
-      # result.txtをアーティファクトとして一時保存
-      - name: Save result
-        uses: actions/upload-artifact@v4
-        with:
-          name: result
-          path: result.txt
-
-      # ここでgh-actionsブランチをチェックアウト
+      # gh-actions ブランチを最初に取得（Pages更新先）
       - name: Checkout gh-actions branch
         uses: actions/checkout@v4
         with:
           ref: gh-actions
           fetch-depth: 0
 
-      # 保存したresult.txtを復元
-      - name: Restore result
-        uses: actions/download-artifact@v4
-        with:
-          name: result
-          path: data
+      # result.txt を一時ディレクトリへコピー
+      - name: Backup result.txt
+        run: |
+          mkdir -p /tmp/ajiyo
+          if [ -f result.txt ]; then
+            cp result.txt /tmp/ajiyo/result.txt
+            echo "[INFO] Copied existing result.txt to /tmp/ajiyo"
+          else
+            echo "3" > /tmp/ajiyo/result.txt
+            echo "[INFO] Created default result.txt (3: X API ERROR)"
+          fi
 
-      # Pagesを更新
+      # main ブランチをチェックアウト
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      # 一時保存していた result.txt を戻す
+      - name: Restore result.txt
+        run: cp /tmp/ajiyo/result.txt result.txt
+
+      # 土日はスキップ（flag_skipを設定）
+      - name: Check skip conditions
+        id: skip
+        run: |
+          day=$(date +%u)
+          FLAG_SKIP=false
+          if [ "$day" -ge 6 ]; then
+            FLAG_SKIP=true
+            echo "[INFO] Weekend detected. Skipping workflow."
+          fi
+          echo "flag_skip=$FLAG_SKIP" >> $GITHUB_OUTPUT
+
+      # Pythonの依存関係をインストール
+      - name: Install dependencies
+        if: steps.skip.outputs.flag_skip != 'true'
+        run: |
+          pip install --no-cache-dir requests python-dotenv
+
+      # Pythonスクリプト実行（get → filter → check）
+      - name: Run Python scripts
+        if: steps.skip.outputs.flag_skip != 'true'
+        env:
+          BEARER_TOKEN: ${{ secrets.BEARER_TOKEN }}
+        run: |
+          python3 script/get_posts.py
+          python3 script/filter_posts.py
+          python3 script/check_status.py
+
+      # 更新された result.txt を一時ディレクトリへコピー
+      - name: Save updated result.txt
+        run: cp result.txt /tmp/ajiyo/result.txt
+
+      # gh-actions ブランチに戻る
+      - name: Checkout gh-actions branch again
+        uses: actions/checkout@v4
+        with:
+          ref: gh-actions
+          fetch-depth: 0
+
+      # result.txt を復元
+      - name: Restore final result.txt
+        run: cp /tmp/ajiyo/result.txt result.txt
+
+      # docs/index.md の営業状況を更新
       - name: Update Pages
         id: update_pages
         run: |
-
-          # result.txtの内容を読み込んで判定
           RESULT=$(cat result.txt)
-          if [ "$RESULT" = "0" ]; then
-            STATUS="❌ CLOSE"
-          elif [ "$RESULT" = "1" ]; then
-            STATUS="⭕ OPEN"
-          elif [ "$RESULT" = "2" ]; then
-            STATUS="❗ SOLD OUT"
-          else
-            STATUS="❓ UNKNOWN"
-          fi
+          case "$RESULT" in
+            0) STATUS="❌ CLOSE" ;;
+            1) STATUS="⭕ OPEN" ;;
+            2) STATUS="🚫 SOLD OUT" ;;
+            3) STATUS="⚠️ UNKNOWN (X API ERROR)" ;;
+            *) STATUS="❓ UNKNOWN" ;;
+          esac
 
-          # 更新日時（JST）
           DATE=$(TZ='Asia/Tokyo' date '+%Y-%m-%d %H:%M (%Z)')
+          echo "[INFO] STATUS=$STATUS DATE=$DATE"
 
-          # 営業状況の書き換え
           sed -z -i "s|<!--RESULT_START-->.*<!--RESULT_END-->|<!--RESULT_START-->$STATUS<!--RESULT_END-->|" docs/index.md
-
-          # 更新日時の書き換え
           sed -z -i "s|<!--DATE_START-->.*<!--DATE_END-->|<!--DATE_START-->$DATE<!--DATE_END-->|" docs/index.md
 
-          # STATUSを出力として保存
           echo "status=$STATUS" >> $GITHUB_OUTPUT
           echo "date=$DATE" >> $GITHUB_OUTPUT
 
-      # 変更をコミットしてプッシュ
+      # コミットして gh-actions ブランチを更新
       - name: Commit and push changes
         run: |
           git config user.name "github-actions"

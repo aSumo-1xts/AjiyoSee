@@ -1,40 +1,54 @@
 """
 get_posts.py
-
-X APIを叩いておばちゃんの直近10件の投稿を取得し、posts_latest.csvに上書きする。
+X APIを叩いて直近の投稿を取得し、posts_latest.csvに保存する。
 """
 
 import os
 import csv
 import json
-from dotenv import load_dotenv
 import requests
+from dotenv import load_dotenv
+from common import write_result
 
-output_file = "posts_latest.csv"
-
-# 自分で設定する項目
+OUTPUT_FILE = "posts_latest.csv"
+RESULT_FILE = "result.txt"
 SEARCH_KEYWORD = "from:ajiyoshiver2"
-MAX_RESULTS = 10  # リクエスト1回につき10以上100未満
+MAX_RESULTS = 10
 
-# 半自動的に設定される項目
-URL = (
-    f"https://api.twitter.com/2/tweets/search/recent"
-    f"?query={SEARCH_KEYWORD}&tweet.fields=author_id,created_at&max_results={MAX_RESULTS}"
-)
-load_dotenv()
-token = os.getenv("BEARER_TOKEN")  # .envファイルにBEARER_TOKEN="xxx"と書いておく
-HEADERS = {"Authorization": f"Bearer {token}"}
 
-# APIを叩いてJSON形式で取得、表示
-response = requests.get(URL, headers=HEADERS).json()
-print(json.dumps(response, indent=2, ensure_ascii=False))
+def main():
+    load_dotenv()
+    token = os.getenv("BEARER_TOKEN")
+    if not token:
+        print("[ERROR] BEARER_TOKENが見つかりません。")
+        write_result(3, RESULT_FILE)
+        return
 
-# "data" が存在する場合のみcsv化
-if "data" in response:
-    with open(output_file, "w", newline="", encoding="utf-8") as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=response["data"][0].keys())
-        writer.writeheader()
-        writer.writerows(response["data"])
-    print(f"{output_file}を更新しました。")
-else:
-    print("ポストが見つからないか、エラーが発生しました。")
+    url = (
+        "https://api.twitter.com/2/tweets/search/recent"
+        f"?query={SEARCH_KEYWORD}&tweet.fields=author_id,created_at&max_results={MAX_RESULTS}"
+    )
+    headers = {"Authorization": f"Bearer {token}"}
+
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+
+        if "data" not in data or not isinstance(data["data"], list):
+            raise ValueError("dataが存在しない、または形式が不正")
+
+        fieldnames = list(data["data"][0].keys())
+        with open(OUTPUT_FILE, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(data["data"])
+        print(f"[INFO] {OUTPUT_FILE}を更新しました。")
+
+    except Exception as e:
+        print(f"[ERROR] X APIエラー: {e}")
+        write_result(3, RESULT_FILE)
+
+
+if __name__ == "__main__":
+    main()

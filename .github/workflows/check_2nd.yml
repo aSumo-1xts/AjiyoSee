@@ -2,7 +2,7 @@ name: Check SOLD OUT
 
 on:
   schedule:
-    - cron: '30 11 * * *' # 20:30 JST → 11:30 UTC
+    - cron: "30 11 * * *" # JST 20:30
   workflow_dispatch:
 
 jobs:
@@ -10,128 +10,113 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # この時点ではmainブランチがチェックアウトされている
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      # いきなりgh-actionsブランチをチェックアウト
+      # まず gh-actions ブランチを取得
       - name: Checkout gh-actions branch
         uses: actions/checkout@v4
         with:
           ref: gh-actions
           fetch-depth: 0
 
-      # result.txtをアーティファクトとして一時保存
-      - name: Save result (initial)
-        uses: actions/upload-artifact@v4
-        with:
-          name: result-initial
-          path: result.txt
+      # result.txt を一時ディレクトリにコピー（なければ "3" を作成）
+      - name: Backup result.txt
+        run: |
+          mkdir -p /tmp/ajiyo
+          if [ -f result.txt ]; then
+            cp result.txt /tmp/ajiyo/result.txt
+            echo "[INFO] Copied existing result.txt to /tmp/ajiyo"
+          else
+            echo "3" > /tmp/ajiyo/result.txt
+            echo "[INFO] Created default result.txt (3: X API ERROR)"
+          fi
 
-      # ここでmainブランチをチェックアウト
+      # main ブランチをチェックアウト
       - name: Checkout main branch
         uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
 
-      # 保存した result.txt を復元
-      - name: Restore result (initial)
-        uses: actions/download-artifact@v4
-        with:
-          name: result-initial
-          path: data
-      
-      # result.txtを読み込む
+      # 一時保存していた result.txt を戻す
+      - name: Restore result.txt
+        run: cp /tmp/ajiyo/result.txt result.txt
+
+      # result.txt を読み込む
       - name: Read result file
         id: read_result_1st
         run: echo "result=$(cat result.txt)" >> $GITHUB_OUTPUT
 
-      # 土日、またはお休みなら下2つの処理をスキップ
-      - name: Skip if weekend
-        id: skip_if_weekend
+      # 土日 または CLOSE (0) / X API Error (3) の場合はスキップ
+      - name: Check skip conditions
+        id: skip
         run: |
           day=$(date +%u)
           FLAG_SKIP=false
-          if [ "$day" -ge 6 ] || [ "${{ steps.read_result_1st.outputs.result }}" = "0" ]; then
+          if [ "$day" -ge 6 ] || \
+             [ "${{ steps.read_result_1st.outputs.result }}" = "0" ] || \
+             [ "${{ steps.read_result_1st.outputs.result }}" = "3" ]; then
             FLAG_SKIP=true
-            echo "Skipping."
+            echo "[INFO] Skipping workflow (weekend or closed)"
           fi
           echo "flag_skip=$FLAG_SKIP" >> $GITHUB_OUTPUT
 
-      # Pythonのセットアップ
+      # Python 環境構築
       - name: Install dependencies
-        if: steps.skip_if_weekend.outputs.flag_skip != 'true'
+        if: steps.skip.outputs.flag_skip != 'true'
         run: |
-          pip install requests python-dotenv
+          pip install --no-cache-dir requests python-dotenv
 
-      # Pythonスクリプトの実行
-      - name: Run Python script
+      # Python スクリプト実行
+      - name: Run Python scripts
+        if: steps.skip.outputs.flag_skip != 'true'
         env:
           BEARER_TOKEN: ${{ secrets.BEARER_TOKEN }}
-        if: steps.skip_if_weekend.outputs.flag_skip != 'true'
         run: |
           python3 script/get_posts.py
-          python3 script/filter_posts.py -2
-          python3 script/check_openclose.py
+          python3 script/filter_posts.py
+          python3 script/check_status.py
 
-      # result.txtをアーティファクトとして一時保存
-      # 上2つの処理をスキップした場合は無駄になるが、まあ良いでしょう
-      - name: Save result (final)
-        uses: actions/upload-artifact@v4
-        with:
-          name: result-final
-          path: result.txt
+      # 新しい result.txt を再度 /tmp にコピー
+      - name: Save updated result.txt
+        run: cp result.txt /tmp/ajiyo/result.txt
 
-      # ここでgh-actionsブランチをチェックアウト
-      - name: Checkout gh-actions branch
+      # gh-actions ブランチに戻る
+      - name: Checkout gh-actions branch again
         uses: actions/checkout@v4
         with:
           ref: gh-actions
           fetch-depth: 0
 
-      # 保存したresult.txtを復元
-      - name: Restore result (final)
-        uses: actions/download-artifact@v4
-        with:
-          name: result-final
-          path: data
+      # result.txt を戻す
+      - name: Restore final result.txt
+        run: cp /tmp/ajiyo/result.txt result.txt
 
-      # Pagesを更新
+      # docs/index.md の更新
       - name: Update Pages
         id: update_pages
         run: |
-
-          # result.txtの内容を読み込んで判定
           RESULT=$(cat result.txt)
-          if [ "$RESULT" = "0" ]; then
-            STATUS="❌ CLOSE"
-          elif [ "$RESULT" = "1" ]; then
-            STATUS="⭕ OPEN"
-          elif [ "$RESULT" = "2" ]; then
-            STATUS="❗ SOLD OUT"
-          else
-            STATUS="❓ UNKNOWN"
-          fi
+          case "$RESULT" in
+            0) STATUS="❌ CLOSE" ;;
+            1) STATUS="⭕ OPEN" ;;
+            2) STATUS="🚫 SOLD OUT" ;;
+            3) STATUS="⚠️ UNKNOWN (X API ERROR)" ;;
+            *) STATUS="❓ UNKNOWN" ;;
+          esac
 
-          # 更新日時（JST）
           DATE=$(TZ='Asia/Tokyo' date '+%Y-%m-%d %H:%M (%Z)')
+          echo "[INFO] STATUS=$STATUS DATE=$DATE"
 
-          # 営業状況の書き換え
           sed -z -i "s|<!--RESULT_START-->.*<!--RESULT_END-->|<!--RESULT_START-->$STATUS<!--RESULT_END-->|" docs/index.md
-
-          # 更新日時の書き換え
           sed -z -i "s|<!--DATE_START-->.*<!--DATE_END-->|<!--DATE_START-->$DATE<!--DATE_END-->|" docs/index.md
 
-          # STATUSを出力として保存
           echo "status=$STATUS" >> $GITHUB_OUTPUT
           echo "date=$DATE" >> $GITHUB_OUTPUT
 
-      # 変更をコミットしてプッシュ
+      # コミット＆プッシュ
       - name: Commit and push changes
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add -A
-          git commit -m "auto: あじよしは現在 ${{ steps.update_pages.outputs.status }}" || echo "No changes"
+          git commit -m "auto: あじよしは現在 ${{ steps.update_pages.outputs.status }}" || echo "No changes to commit"
           git push origin gh-actions
