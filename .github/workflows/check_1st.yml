@@ -46,7 +46,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: result
-          path: data/result.txt
+          path: result.txt
 
       # ここでgh-actionsブランチをチェックアウト
       - name: Checkout gh-actions branch
@@ -68,7 +68,7 @@ jobs:
         run: |
 
           # result.txtの内容を読み込んで判定
-          RESULT=$(cat data/result.txt)
+          RESULT=$(cat result.txt)
           if [ "$RESULT" = "0" ]; then
             STATUS="❌ CLOSE"
           elif [ "$RESULT" = "1" ]; then

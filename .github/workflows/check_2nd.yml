@@ -26,7 +26,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: result-initial
-          path: data/result.txt
+          path: result.txt
 
       # ここでmainブランチをチェックアウト
       - name: Checkout main branch
@@ -45,7 +45,7 @@ jobs:
       # result.txtを読み込む
       - name: Read result file
         id: read_result_1st
-        run: echo "result=$(cat data/result.txt)" >> $GITHUB_OUTPUT
+        run: echo "result=$(cat result.txt)" >> $GITHUB_OUTPUT
 
       # 土日、またはお休みなら下2つの処理をスキップ
       - name: Skip if weekend
@@ -81,7 +81,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: result-final
-          path: data/result.txt
+          path: result.txt
 
       # ここでgh-actionsブランチをチェックアウト
       - name: Checkout gh-actions branch
@@ -103,7 +103,7 @@ jobs:
         run: |
 
           # result.txtの内容を読み込んで判定
-          RESULT=$(cat data/result.txt)
+          RESULT=$(cat result.txt)
           if [ "$RESULT" = "0" ]; then
             STATUS="❌ CLOSE"
           elif [ "$RESULT" = "1" ]; then
