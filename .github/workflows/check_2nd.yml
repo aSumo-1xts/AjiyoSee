@@ -90,7 +90,7 @@ jobs:
       - name: Restore final result.txt
         run: cp /tmp/ajiyo/result.txt result.txt
 
-      # docs/index.md の更新
+      # README.md の更新
       - name: Update Pages
         id: update_pages
         run: |
@@ -106,8 +106,8 @@ jobs:
           DATE=$(TZ='Asia/Tokyo' date '+%Y-%m-%d %H:%M (%Z)')
           echo "[INFO] STATUS=$STATUS DATE=$DATE"
 
-          sed -z -i "s|<!--RESULT_START-->.*<!--RESULT_END-->|<!--RESULT_START-->$STATUS<!--RESULT_END-->|" docs/index.md
-          sed -z -i "s|<!--DATE_START-->.*<!--DATE_END-->|<!--DATE_START-->$DATE<!--DATE_END-->|" docs/index.md
+          sed -z -i "s|<!--RESULT_START-->.*<!--RESULT_END-->|<!--RESULT_START-->$STATUS<!--RESULT_END-->|" README.md
+          sed -z -i "s|<!--DATE_START-->.*<!--DATE_END-->|<!--DATE_START-->$DATE<!--DATE_END-->|" README.md
 
           echo "status=$STATUS" >> $GITHUB_OUTPUT
           echo "date=$DATE" >> $GITHUB_OUTPUT
