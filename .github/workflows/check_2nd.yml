@@ -49,12 +49,12 @@ jobs:
           if [ "$day" -ge 6 ] || \
              [ "${{ steps.read_result_1st.outputs.result }}" = "0" ] || \
              [ "${{ steps.read_result_1st.outputs.result }}" = "3" ] || \
-             [ "${{ steps.read_result_1st.outputs.result }}" = "4" ] || \
+             [ "${{ steps.read_result_1st.outputs.result }}" = "4" ]; then
             FLAG_SKIP=true
             echo "[INFO] Skipping workflow (weekend or closed)"
           fi
           echo "flag_skip=$FLAG_SKIP" >> $GITHUB_OUTPUT
-
+          
       # Python 環境構築
       - name: Install dependencies
         if: steps.skip.outputs.flag_skip != 'true'
