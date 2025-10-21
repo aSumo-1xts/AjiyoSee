@@ -1,0 +1,11 @@
+theme: jekyll-theme-slate
+title: AjiyoSee
+tagline: 「あじよし今日やってんのかな…」
+description: つくば市の飲食店『あじよし』の営業状況をざっくりリアルタイムで可視化する非公認プロジェクト。
+url: https://asumo-1xts.github.io/AjiyoSee
+twitter:
+  card: summary
+show_downloads: true
+plugins:
+  - jekyll-sitemap
+  - jekyll-seo-tag
