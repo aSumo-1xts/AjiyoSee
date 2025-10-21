@@ -1,0 +1,45 @@
+name: Lint and format
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "script/**"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "script/**"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "pyproject.toml"
+
+      - name: Install ruff
+        run: uv pip install --system ruff
+
+      - name: Lint code with Ruff
+        run: ruff check script/** --output-format=github
+
+      - name: Check code formatting with Ruff
+        run: ruff format script/** --diff
+        continue-on-error: true

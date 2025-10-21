@@ -1,0 +1,124 @@
+name: Check SOLD OUT
+
+on:
+  schedule:
+    - cron: "30 11 * * *" # JST 20:30
+  workflow_dispatch:
+
+jobs:
+  check-soldout:
+    runs-on: ubuntu-latest
+
+    steps:
+      # まず gh-actions ブランチを取得
+      - name: Checkout gh-actions branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-actions
+          fetch-depth: 0
+
+      # result.txt を一時ディレクトリにコピー
+      - name: Backup result.txt
+        run: |
+          mkdir -p /tmp/ajiyo
+          cp result.txt /tmp/ajiyo/result.txt
+
+      # main ブランチをチェックアウト
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      # 一時保存していた result.txt を戻す
+      - name: Restore result.txt
+        run: cp /tmp/ajiyo/result.txt result.txt
+
+      # result.txt を読み込む
+      - name: Read result file
+        id: read_result_1st
+        run: echo "result=$(cat result.txt)" >> $GITHUB_OUTPUT
+
+      # 土日またはOPENでない場合にはスキップ
+      - name: Check skip conditions
+        id: skip
+        run: |
+          day=$(TZ=Asia/Tokyo date +%u)
+          FLAG_SKIP=false
+          if [ "$day" -ge 6 ] || \
+             [ "${{ steps.read_result_1st.outputs.result }}" = "0" ]; then
+            FLAG_SKIP=true
+            echo "[Actions] Skipping workflow."
+          fi
+          echo "flag_skip=$FLAG_SKIP" >> $GITHUB_OUTPUT
+
+      # uvでPythonをセットアップ
+      - name: Set up Python
+        if: steps.skip.outputs.flag_skip != 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "pyproject.toml"
+      - name: Install uv
+        if: steps.skip.outputs.flag_skip != 'true'
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Install the project
+        if: steps.skip.outputs.flag_skip != 'true'
+        run: uv sync --locked --all-extras --dev
+
+      # Pythonスクリプト実行（get → filter → check）
+      - name: Run Python scripts
+        if: steps.skip.outputs.flag_skip != 'true'
+        env:
+          BEARER_TOKEN: ${{ secrets.BEARER_TOKEN }}
+        run: |
+          uv run script/get_posts.py
+          uv run script/filter_posts.py
+          uv run script/check_status.py
+
+      # 新しい result.txt を再度 /tmp にコピー
+      - name: Save updated result.txt
+        run: cp result.txt /tmp/ajiyo/result.txt
+
+      # gh-actions ブランチに戻る
+      - name: Checkout gh-actions branch again
+        uses: actions/checkout@v4
+        with:
+          ref: gh-actions
+          fetch-depth: 0
+
+      # result.txt を戻す
+      - name: Restore final result.txt
+        run: cp /tmp/ajiyo/result.txt result.txt
+
+      # README.md の更新
+      - name: Update Pages
+        id: update_pages
+        run: |
+          RESULT=$(cat result.txt)
+          case "$RESULT" in
+            0) STATUS="❌ CLOSE" ;;
+            1) STATUS="⭕ OPEN" ;;
+            2) STATUS="🚫 SOLD OUT" ;;
+            3) STATUS="⚠️ UNKNOWN \[X API ERROR\]" ;;
+            *) STATUS="❓ UNKNOWN" ;;
+          esac
+
+          DATE=$(TZ='Asia/Tokyo' date '+%Y-%m-%d %H:%M %Z')
+          echo "[Actions] STATUS=$STATUS DATE=$DATE"
+
+          sed -z -i "s|<!--RESULT_START-->.*<!--RESULT_END-->|<!--RESULT_START-->$STATUS<!--RESULT_END-->|" README.md
+          sed -z -i "s|<!--DATE_START-->.*<!--DATE_END-->|<!--DATE_START-->$DATE<!--DATE_END-->|" README.md
+
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+          echo "date=$DATE" >> $GITHUB_OUTPUT
+
+      # コミット＆プッシュ
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add -A
+          git commit -m "auto: あじよしは現在 ${{ steps.update_pages.outputs.status }}" || echo "No changes to commit"
+          git push origin gh-actions

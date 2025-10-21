@@ -1,0 +1,11 @@
+[project]
+name = "ajiyosee"
+version = "0.1.0"
+description = "つくば市の飲食店「あじよし」の営業状況をざっくりリアルタイムで可視化する非公認プロジェクト。"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "dotenv>=0.9.9",
+    "requests>=2.32.5",
+    "ruff>=0.14.1",
+]
