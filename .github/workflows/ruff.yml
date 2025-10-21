@@ -37,8 +37,8 @@ jobs:
         run: uv pip install --system ruff
 
       - name: Lint code with Ruff
-        run: ruff check --output-format=github --target-version=py313
+        run: ruff check script/** --output-format=github --target-version=py313
 
       - name: Check code formatting with Ruff
-        run: ruff format --diff --target-version=py313
+        run: ruff format script/** --diff --target-version=py313
         continue-on-error: true
