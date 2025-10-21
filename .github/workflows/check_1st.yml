@@ -21,13 +21,7 @@ jobs:
       - name: Backup result.txt
         run: |
           mkdir -p /tmp/ajiyo
-          if [ -f result.txt ]; then
-            cp result.txt /tmp/ajiyo/result.txt
-            echo "[INFO] Copied existing result.txt to /tmp/ajiyo"
-          else
-            echo "3" > /tmp/ajiyo/result.txt
-            echo "[INFO] Created default result.txt (3: X API ERROR)"
-          fi
+          cp result.txt /tmp/ajiyo/result.txt
 
       # main ブランチをチェックアウト
       - name: Checkout main branch
@@ -48,7 +42,7 @@ jobs:
           FLAG_SKIP=false
           if [ "$day" -ge 6 ]; then
             FLAG_SKIP=true
-            echo "[INFO] Weekend detected. Skipping workflow."
+            echo "[Actions] Skipping workflow."
           fi
           echo "flag_skip=$FLAG_SKIP" >> $GITHUB_OUTPUT
 
@@ -96,8 +90,8 @@ jobs:
             *) STATUS="❓ UNKNOWN" ;;
           esac
 
-          DATE=$(TZ='Asia/Tokyo' date '+%Y-%m-%d %H:%M (%Z)')
-          echo "[INFO] STATUS=$STATUS DATE=$DATE"
+          DATE=$(TZ='Asia/Tokyo' date '+%Y-%m-%d %H:%M %Z')
+          echo "[Actions] STATUS=$STATUS DATE=$DATE"
 
           sed -z -i "s|<!--RESULT_START-->.*<!--RESULT_END-->|<!--RESULT_START-->$STATUS<!--RESULT_END-->|" README.md
           sed -z -i "s|<!--DATE_START-->.*<!--DATE_END-->|<!--DATE_START-->$DATE<!--DATE_END-->|" README.md

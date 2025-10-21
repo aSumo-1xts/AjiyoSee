@@ -5,10 +5,8 @@ X APIを叩いて直近の投稿を取得し、posts_latest.csvに保存する�
 
 import os
 import csv
-import json
 import requests
 from dotenv import load_dotenv
-from common import write_result
 
 OUTPUT_FILE = "posts_latest.csv"
 RESULT_FILE = "result.txt"
@@ -19,11 +17,6 @@ MAX_RESULTS = 10
 def main():
     load_dotenv()
     token = os.getenv("BEARER_TOKEN")
-    if not token:
-        print("[ERROR] BEARER_TOKENが見つかりません。")
-        write_result(3, RESULT_FILE)
-        return
-
     url = (
         "https://api.twitter.com/2/tweets/search/recent"
         f"?query={SEARCH_KEYWORD}&tweet.fields=author_id,created_at&max_results={MAX_RESULTS}"
@@ -43,11 +36,10 @@ def main():
             writer = csv.DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(data["data"])
-        print(f"[INFO] {OUTPUT_FILE}を更新しました。")
+        print(f"[get_posts.py] {OUTPUT_FILE}を更新しました。")
 
     except Exception as e:
-        print(f"[ERROR] X APIエラー: {e}")
-        write_result(3, RESULT_FILE)
+        print(f"[get_posts.py] X APIエラー: {e}")
 
 
 if __name__ == "__main__":

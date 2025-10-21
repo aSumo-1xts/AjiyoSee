@@ -1,14 +1,12 @@
-import sys
-import json
-import csv
 from datetime import datetime, timezone, timedelta
 
 
-def write_result(code: int, path: str = "result.txt"):
+def write_result(code: int):
     """結果コードを result.txt に書き込む"""
+    path = "result.txt"
     with open(path, "w", encoding="utf-8") as f:
         f.write(str(code))
-    print(f"[INFO] result.txtを更新: {code}")
+    print(f"[common.py] result.txtを更新: {code}")
 
 
 def read_result(path: str = "result.txt") -> int:
