@@ -46,11 +46,20 @@ jobs:
           fi
           echo "flag_skip=$FLAG_SKIP" >> $GITHUB_OUTPUT
 
-      # Pythonの依存関係をインストール
-      - name: Install dependencies
+      # uvでPythonをセットアップ
+      - name: Set up Python
         if: steps.skip.outputs.flag_skip != 'true'
-        run: |
-          pip install --no-cache-dir requests python-dotenv
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "pyproject.toml"
+      - name: Install uv
+        if: steps.skip.outputs.flag_skip != 'true'
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Install the project
+        if: steps.skip.outputs.flag_skip != 'true'
+        run: uv sync --locked --all-extras --dev
 
       # Pythonスクリプト実行（get → filter → check）
       - name: Run Python scripts
@@ -58,9 +67,9 @@ jobs:
         env:
           BEARER_TOKEN: ${{ secrets.BEARER_TOKEN }}
         run: |
-          python3 script/get_posts.py
-          python3 script/filter_posts.py
-          python3 script/check_status.py
+          uv run script/get_posts.py
+          uv run script/filter_posts.py
+          uv run script/check_status.py
 
       # 更新された result.txt を一時ディレクトリへコピー
       - name: Save updated result.txt
