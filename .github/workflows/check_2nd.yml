@@ -39,7 +39,7 @@ jobs:
         id: read_result_1st
         run: echo "result=$(cat result.txt)" >> $GITHUB_OUTPUT
 
-      # 土日またはOPENでない場合にはスキップ
+      # 土日またはCLOSEの場合にはスキップ
       - name: Check skip conditions
         id: skip
         run: |
