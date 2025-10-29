@@ -4,7 +4,7 @@ image: https://github.com/aSumo-1xts/AjiyoSee/blob/gh-actions/docs/IMG_4947.png?
 
 # あじよしの営業状況
 
-**<!--RESULT_START-->⚠️ UNKNOWN [X API ERROR]<!--RESULT_END-->** ── 最終更新日時：<!--DATE_START-->2025-10-29 16:52 JST<!--DATE_END-->
+**<!--RESULT_START-->⚠️ UNKNOWN [X API ERROR]<!--RESULT_END-->** ── 最終更新日時：<!--DATE_START-->2025-10-29 20:34 JST<!--DATE_END-->
 
 正確な営業状況は[あじよし公式X](https://x.com/ajiyoshiver2)よりご確認ください。
 
